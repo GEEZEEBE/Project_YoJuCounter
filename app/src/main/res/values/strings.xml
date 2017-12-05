@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">YoJuCounter</string>
+    <string name="title">Title</string>
+    <string name="item_minus">item minus</string>
+    <string name="itemplus">item plus</string>
+    <string name="action_settings">Setting</string>
+    <string name="action_statistic">Statistic</string>
+    <string name="action_modify">Modify</string>
+    <string name="action_add">Add</string>
+    <string name="button_cancel">Cancel</string>
 </resources>
