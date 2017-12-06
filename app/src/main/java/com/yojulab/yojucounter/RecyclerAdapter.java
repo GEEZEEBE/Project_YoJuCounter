@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.yojulab.yojucounter.database.DBProvider;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -18,14 +20,19 @@ import java.util.HashMap;
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHolder> {
 
     ArrayList<HashMap<String,Object>> arrayList ;
+    private DBProvider db;
 
     public RecyclerAdapter(){
         this.arrayList = new ArrayList<HashMap<String,Object>>();
     }
 
     public RecyclerAdapter(ArrayList<HashMap<String,Object>> arrayList){
-        this.arrayList = new ArrayList<HashMap<String,Object>>();
         this.arrayList = arrayList;
+    }
+
+    public RecyclerAdapter(DBProvider db){
+        this.db = db;
+        this.arrayList = (ArrayList<HashMap<String, Object>>) db.getItemsAsDate();
     }
 
     public void addItem(HashMap<String,Object> hashMap){
@@ -60,6 +67,18 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
             public void onClick(View v) {
                 Integer count = Integer.parseInt(((TextView) holder.itemCount).getText().toString()) + 1;
                 ((TextView) holder.itemCount).setText(count.toString());
+                String uniqueId = holder.uniqueId.getText().toString();
+                String fkUniqueId = holder.fkUniqueId.getText().toString();
+                String title = null;
+                if(uniqueId.equals("")){
+                    title = holder.itemTitle.getText().toString();
+                    uniqueId = db.addItem(title);
+                    fkUniqueId = db.addSubItem(uniqueId);
+                    ((TextView) holder.uniqueId).setText(uniqueId);
+                    ((TextView) holder.fkUniqueId).setText(fkUniqueId);
+                } else {
+                    db.increaseCount(fkUniqueId, count);
+                }
             }
         });
         holder.itemMinus.setOnClickListener(new View.OnClickListener() {
@@ -68,12 +87,16 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                 Integer count = Integer.parseInt(((TextView) holder.itemCount).getText().toString()) - 1;
                 count = (count <= 0)? 0 : count;
                 ((TextView) holder.itemCount).setText(count.toString());
+                String fkUniqueId = holder.fkUniqueId.getText().toString();
+                db.increaseCount(fkUniqueId, count);
             }
         });
         holder.itemReset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ((TextView) holder.itemCount).setText("0");
+                String fkUniqueId = holder.fkUniqueId.getText().toString();
+                db.increaseCount(fkUniqueId, 0);
             }
         });
     }
@@ -90,6 +113,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         public ImageView itemMinus;
         public ImageView itemPlus;
         public TextView itemCount;
+        public TextView uniqueId;
+        public TextView fkUniqueId;
 
         public ViewHolder(final View itemView) {
             super(itemView);
@@ -98,6 +123,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
             itemMinus = (ImageView)itemView.findViewById(R.id.item_minus);
             itemPlus = (ImageView)itemView.findViewById(R.id.item_plus);
             itemCount = (TextView)itemView.findViewById(R.id.item_count);
+            uniqueId = (TextView)itemView.findViewById(R.id.unique_id);
+            fkUniqueId = (TextView)itemView.findViewById(R.id.fk_unique_id);
         }
     }
 }

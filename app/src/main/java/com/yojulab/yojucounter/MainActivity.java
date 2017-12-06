@@ -14,6 +14,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.yojulab.yojucounter.database.DBProvider;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -21,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
 
     RecyclerAdapter adapter;
     ArrayList<HashMap<String,Object>> arrayList = null;
+    private DBProvider db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,28 +38,33 @@ public class MainActivity extends AppCompatActivity {
 
         arrayList = new ArrayList<HashMap<String,Object>>();
 
-        adapter = new RecyclerAdapter(arrayList);
+        db = new DBProvider(this);
+        db.open();
+
+        adapter = new RecyclerAdapter(db);
 
         recyclerView.setAdapter(adapter);
-
-        HashMap<String,Object> hashMap = null;
-        hashMap = new HashMap<String,Object>();
-        hashMap.put("title", "Chapter Two");
-        adapter.addItem(hashMap);
-        hashMap = new HashMap<String,Object>();
-        hashMap.put("title", "Chapter Four");
-        adapter.addItem(hashMap);
-        hashMap = new HashMap<String,Object>();
-        hashMap.put("title", "Chapter Seven");
-        adapter.addItem(hashMap);
-
-        Log.d("test", "test");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+    }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onDestroy() {
+        db.close();
+        super.onDestroy();
     }
 
     @Override
