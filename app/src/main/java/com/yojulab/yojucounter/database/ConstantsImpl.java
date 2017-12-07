@@ -5,7 +5,7 @@ package com.yojulab.yojucounter.database;
  */
 
 interface ConstantsImpl {
-    final String dateFormat = "yyyy-MM-dd";
+    final String dateFormat = "yyyyMMdd";
 
     final String DB = "yojucounter.db";
     final int VERSION = 2;

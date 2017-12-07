@@ -47,7 +47,25 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
 
     public void removeItem(int position){
         this.arrayList.remove(position);
-        notifyDataSetChanged();
+        notifyItemRemoved(position);
+    }
+
+    public void removeAtPosition(int position) {
+        if (position < arrayList.size()) {
+            db.deleteItem(arrayList.get(position));
+            // 데이터를 삭제한다
+            arrayList.remove(position);
+            // 삭제했다고 Adapter 알린다
+            notifyItemRemoved(position);
+
+        }
+    }
+
+    public void moveItem(int fromPosition, int toPosition) {
+//        final String text = arrayList.get(fromPosition);
+//        arrayList.remove(fromPosition);
+//        arrayList.add(toPosition, text);
+        notifyItemMoved(fromPosition, toPosition);
     }
 
     @Override
@@ -60,8 +78,10 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         HashMap<String,Object> hashMap = arrayList.get(position);
+        holder.uniqueId.setText((String)hashMap.get("unique_id"));
         holder.itemTitle.setText((String)hashMap.get("title"));
-        holder.itemCount.setText("0");
+        holder.itemCount.setText((String)hashMap.get("count_number"));
+        holder.fkUniqueId.setText((String)hashMap.get("fk_unique_id"));
         holder.itemCount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

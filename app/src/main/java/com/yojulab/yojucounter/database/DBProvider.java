@@ -39,12 +39,13 @@ public class DBProvider implements ConstantsImpl {
 	}
 
 	public List getItemsAsDate(){
-		return getItemsAsDate(getDateFormat());
+		return getItemsAsDate(getDateFormat("yyyyMMdd"));
 	}
 
 	public List getItemsAsDate(String create_date){
 		String query = new StringBuilder()
-				.append("select dc.unique_id,ci.counter_name,ci.delete_yn,dc.count_date ")
+				.append("select dc.unique_id, ci.counter_name, ci.delete_yn")
+				.append("	, dc.count_date, dc.count_number, fk_unique_id ")
 				.append("  from (select * from daily_count ")
 				.append(" 		where count_date like '"+create_date+"%') dc ")
 				.append("  		LEFT JOIN ")
@@ -62,6 +63,8 @@ public class DBProvider implements ConstantsImpl {
 			hashMap = new HashMap<String,Object>();
 			hashMap.put("unique_id", cursor.getString(0));
 			hashMap.put("title", cursor.getString(1));
+			hashMap.put("count_number", cursor.getString(4));
+			hashMap.put("fk_unique_id", cursor.getString(5));
 			arrayList.add(hashMap);
 		}
 
@@ -102,10 +105,10 @@ public class DBProvider implements ConstantsImpl {
 	
 	public int deleteItem(Map map){
 		ContentValues values = new ContentValues();
-//		values.put(C_ENDDATE, endDate);
-		
+		values.put(DELETE_YN, "Y");
+
 		String whereClause = UNIQUE_ID + " = ? " ;
-		int cnt = db.update(T_COUNTER_INFOR, values, whereClause, new String[]{(String) map.get("title")});
+		int cnt = db.update(T_COUNTER_INFOR, values, whereClause, new String[]{(String) map.get("fk_unique_id")});
 //		db.delete(T_COUNTER_INFOR, "_id = ?", new String[]{id});
 		
 		return cnt;
@@ -175,6 +178,12 @@ public class DBProvider implements ConstantsImpl {
 		}
 
         return sDate ;
+	}
+
+	public String getDateFormat(String dateForm) {
+		DateFormat dateFormat = new SimpleDateFormat(dateForm);
+		Date date = new Date();
+		return dateFormat.format(date);
 	}
 
 	public String getDateFormat() {

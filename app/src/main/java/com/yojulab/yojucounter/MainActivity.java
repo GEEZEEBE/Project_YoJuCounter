@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,6 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.facebook.stetho.Stetho;
 import com.yojulab.yojucounter.database.DBProvider;
 
 import java.util.ArrayList;
@@ -22,7 +24,7 @@ import java.util.HashMap;
 public class MainActivity extends AppCompatActivity {
 
     RecyclerAdapter adapter;
-    ArrayList<HashMap<String,Object>> arrayList = null;
+//    ExtendRecyclerAdapter adapter;
     private DBProvider db;
 
     @Override
@@ -30,13 +32,21 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if(BuildConfig.DEBUG){
+            Context context = getApplicationContext();
+            Stetho.initializeWithDefaults(this);
+        }
+        setupRecyclerView();
+    }
+
+    private void setupRecyclerView() {
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+
+        recyclerView.setHasFixedSize(true);
 
         RecyclerView.LayoutManager layoutManager = layoutManager = new LinearLayoutManager(this);
 
         recyclerView.setLayoutManager(layoutManager);
-
-        arrayList = new ArrayList<HashMap<String,Object>>();
 
         db = new DBProvider(this);
         db.open();
@@ -44,21 +54,21 @@ public class MainActivity extends AppCompatActivity {
         adapter = new RecyclerAdapter(db);
 
         recyclerView.setAdapter(adapter);
-    }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN, ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                // 드래그앤드롭 시
+                adapter.moveItem(viewHolder.getAdapterPosition(), target.getAdapterPosition());
+                return true;
+            }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                // 아이템 스와이프 시
+                adapter.removeAtPosition(viewHolder.getAdapterPosition());
+            }
+        }).attachToRecyclerView(recyclerView);
     }
 
     @Override
@@ -122,7 +132,8 @@ public class MainActivity extends AppCompatActivity {
                 EditText title = (EditText)dialog.findViewById(R.id.title);
                 HashMap<String,Object> hashMap = new HashMap<String,Object>();
                 hashMap.put("title", title.getText().toString());
-                adapter.addItem(hashMap);
+                hashMap.put("count_number", "0");
+                adapter.addItem(0,hashMap);
                 dialog.dismiss();
             }
         });
