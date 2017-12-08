@@ -1,13 +1,13 @@
 package com.yojulab.yojucounter;
 
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.yojulab.yojucounter.database.ConstantsImpl;
 import com.yojulab.yojucounter.database.DBProvider;
 
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import java.util.HashMap;
  * Created by sanghunoh on 08/11/2017.
  */
 
-public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHolder> {
+public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHolder> implements ConstantsImpl {
 
     ArrayList<HashMap<String,Object>> arrayList ;
     private DBProvider db;
@@ -45,26 +45,22 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         notifyItemInserted(position);
     }
 
-    public void removeItem(int position){
-        this.arrayList.remove(position);
-        notifyItemRemoved(position);
-    }
-
     public void removeAtPosition(int position) {
         if (position < arrayList.size()) {
-            db.deleteItem(arrayList.get(position));
+            int cnt = db.unUseItem(arrayList.get(position));
             // 데이터를 삭제한다
-            arrayList.remove(position);
-            // 삭제했다고 Adapter 알린다
-            notifyItemRemoved(position);
-
+            if(cnt > 0){
+                arrayList.remove(position);
+                // 삭제했다고 Adapter 알린다
+                notifyItemRemoved(position);
+            }
         }
     }
 
     public void moveItem(int fromPosition, int toPosition) {
-//        final String text = arrayList.get(fromPosition);
-//        arrayList.remove(fromPosition);
-//        arrayList.add(toPosition, text);
+        HashMap<String,Object> hashMap = arrayList.get(fromPosition);
+        arrayList.remove(fromPosition);
+        arrayList.add(toPosition, hashMap);
         notifyItemMoved(fromPosition, toPosition);
     }
 
@@ -78,45 +74,46 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         HashMap<String,Object> hashMap = arrayList.get(position);
-        holder.uniqueId.setText((String)hashMap.get("unique_id"));
-        holder.itemTitle.setText((String)hashMap.get("title"));
-        holder.itemCount.setText((String)hashMap.get("count_number"));
-        holder.fkUniqueId.setText((String)hashMap.get("fk_unique_id"));
-        holder.itemCount.setOnClickListener(new View.OnClickListener() {
+        holder.dailyUniqueId.setText((String)hashMap.get(DAILY_UNIQUE_ID));
+        holder.counterName.setText((String)hashMap.get(COUNTER_NAME));
+        holder.countNumber.setText(hashMap.get(COUNT_NUMBER).toString());
+        holder.informationUniqueId.setText((String)hashMap.get(INFORMATION_UNIQUE_ID));
+        holder.countNumber.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Integer count = Integer.parseInt(((TextView) holder.itemCount).getText().toString()) + 1;
-                ((TextView) holder.itemCount).setText(count.toString());
-                String uniqueId = holder.uniqueId.getText().toString();
-                String fkUniqueId = holder.fkUniqueId.getText().toString();
-                String title = null;
-                if(uniqueId.equals("")){
-                    title = holder.itemTitle.getText().toString();
-                    uniqueId = db.addItem(title);
-                    fkUniqueId = db.addSubItem(uniqueId);
-                    ((TextView) holder.uniqueId).setText(uniqueId);
-                    ((TextView) holder.fkUniqueId).setText(fkUniqueId);
+                Integer count = Integer.parseInt(((TextView) holder.countNumber).getText().toString()) + 1;
+                ((TextView) holder.countNumber).setText(count.toString());
+                String dailyUniqueId = holder.dailyUniqueId.getText().toString();
+                if(dailyUniqueId.equals("")){
+                    String informationUniqueId = null;
+                    String counterName = holder.counterName.getText().toString();
+                    informationUniqueId = db.addItem(counterName);
+                    dailyUniqueId = db.addSubItem(informationUniqueId);
+                    ((TextView) holder.dailyUniqueId).setText(dailyUniqueId);
+                    ((TextView) holder.informationUniqueId).setText(informationUniqueId);
                 } else {
-                    db.increaseCount(fkUniqueId, count);
+                    db.increaseCount(dailyUniqueId, count);
                 }
             }
         });
         holder.itemMinus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Integer count = Integer.parseInt(((TextView) holder.itemCount).getText().toString()) - 1;
+                Integer count = Integer.parseInt(((TextView) holder.countNumber).getText().toString()) - 1;
                 count = (count <= 0)? 0 : count;
-                ((TextView) holder.itemCount).setText(count.toString());
-                String fkUniqueId = holder.fkUniqueId.getText().toString();
-                db.increaseCount(fkUniqueId, count);
+                ((TextView) holder.countNumber).setText(count.toString());
+                String dailyUniqueId = holder.informationUniqueId.getText().toString();
+                db.increaseCount(dailyUniqueId, count);
             }
         });
         holder.itemReset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((TextView) holder.itemCount).setText("0");
-                String fkUniqueId = holder.fkUniqueId.getText().toString();
-                db.increaseCount(fkUniqueId, 0);
+                String informationUniqueId = holder.informationUniqueId.getText().toString();
+                int cnt = db.increaseCount(informationUniqueId, 0);
+                if(cnt > 0){
+                    ((TextView) holder.countNumber).setText("0");
+                }
             }
         });
     }
@@ -128,23 +125,23 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
 
     class ViewHolder extends RecyclerView.ViewHolder{
 
-        public TextView itemTitle;
+        public TextView counterName;
         public ImageView itemReset;
         public ImageView itemMinus;
         public ImageView itemPlus;
-        public TextView itemCount;
-        public TextView uniqueId;
-        public TextView fkUniqueId;
+        public TextView countNumber;
+        public TextView dailyUniqueId;
+        public TextView informationUniqueId;
 
         public ViewHolder(final View itemView) {
             super(itemView);
-            itemTitle = (TextView)itemView.findViewById(R.id.item_title);
+            informationUniqueId = (TextView)itemView.findViewById(R.id.information_unique_id);
+            counterName = (TextView)itemView.findViewById(R.id.counter_name);
             itemReset = (ImageView)itemView.findViewById(R.id.item_reset);
             itemMinus = (ImageView)itemView.findViewById(R.id.item_minus);
             itemPlus = (ImageView)itemView.findViewById(R.id.item_plus);
-            itemCount = (TextView)itemView.findViewById(R.id.item_count);
-            uniqueId = (TextView)itemView.findViewById(R.id.unique_id);
-            fkUniqueId = (TextView)itemView.findViewById(R.id.fk_unique_id);
+            countNumber = (TextView)itemView.findViewById(R.id.count_number);
+            dailyUniqueId = (TextView)itemView.findViewById(R.id.daily_unique_id);
         }
     }
 }

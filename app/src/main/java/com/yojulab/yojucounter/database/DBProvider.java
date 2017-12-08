@@ -5,10 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.provider.BaseColumns;
 
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -20,7 +18,7 @@ import java.util.UUID;
 
 public class DBProvider implements ConstantsImpl {
 
-	private final Context context;
+	private Context context;
 	private SQLiteDatabase db ;
 	private OpenHelper dbHelper;
 	
@@ -44,14 +42,14 @@ public class DBProvider implements ConstantsImpl {
 
 	public List getItemsAsDate(String create_date){
 		String query = new StringBuilder()
-				.append("select dc.unique_id, ci.counter_name, ci.delete_yn")
-				.append("	, dc.count_date, dc.count_number, fk_unique_id ")
-				.append("  from (select * from daily_count ")
-				.append(" 		where count_date like '"+create_date+"%') dc ")
+				.append("select ci.information_unique_id,ci.counter_name,ci.delete_yn ")
+				.append("	,dc.daily_unique_id,ifnull(dc.count_number,0),dc.count_date ")
+				.append("from (select * from counter_information ")
+				.append(" 		where delete_yn = 'N') ci ")
 				.append("  		LEFT JOIN ")
-				.append("  		counter_information ci")
-				.append("  	on ci.unique_id = dc.fk_unique_id ")
-				.append("where ci.delete_yn = 'N'")
+				.append("  		(select * from daily_count ")
+				.append("  		where count_date like '"+create_date+"%') dc ")
+				.append("on ci.information_unique_id = dc.information_unique_id ")
 				.toString();
 		Cursor cursor = db.rawQuery(query, null);
 
@@ -61,41 +59,67 @@ public class DBProvider implements ConstantsImpl {
 
 		while (cursor.moveToNext()) {
 			hashMap = new HashMap<String,Object>();
-			hashMap.put("unique_id", cursor.getString(0));
-			hashMap.put("title", cursor.getString(1));
-			hashMap.put("count_number", cursor.getString(4));
-			hashMap.put("fk_unique_id", cursor.getString(5));
+			hashMap.put(INFORMATION_UNIQUE_ID, cursor.getString(0));
+			hashMap.put(COUNTER_NAME, cursor.getString(1));
+			hashMap.put(DAILY_UNIQUE_ID, cursor.getString(3));
+			hashMap.put(COUNT_NUMBER, cursor.getInt(4));
 			arrayList.add(hashMap);
 		}
 
 		return arrayList;
 	}
 
+
+	public List getDailyStatisticAsDate(String create_date){
+		String query = new StringBuilder()
+				.append("select ci.counter_name, ifnull(dc.count_number,0) ")
+				.append("from (select * from counter_information) ci ")
+				.append("	INNER JOIN ")
+				.append("  	(select * from daily_count ")
+				.append("  	where count_date like '"+create_date+"%') dc ")
+				.append("on ci.information_unique_id = dc.information_unique_id ")
+				.toString();
+
+		Cursor cursor = db.rawQuery(query, null);
+
+		ArrayList<HashMap<String,Object>> arrayList = new ArrayList<>();
+
+		HashMap<String,Object> hashMap = null;
+
+		while (cursor.moveToNext()) {
+			hashMap = new HashMap<String,Object>();
+			hashMap.put(COUNTER_NAME, cursor.getString(0));
+			hashMap.put(COUNT_NUMBER, cursor.getInt(1));
+			arrayList.add(hashMap);
+		}
+
+		return arrayList;
+	}
 	public String addItem(String title){
 		String uniqueID = getUUID();
 		ContentValues values = new ContentValues();
-		values.put(UNIQUE_ID, uniqueID);
+		values.put(INFORMATION_UNIQUE_ID, uniqueID);
 		values.put(COUNTER_NAME, title);
 		values.put(DELETE_YN, "N");
 
 		long id = 0;
-		id = db.insert(T_COUNTER_INFOR, null, values);
+		id = db.insert(T_COUNTER_INFORMATION, null, values);
 
 		return uniqueID;
 	}
 
-	public String addSubItem(String fkUniqueId){
-		String uniqueID = getUUID();
+	public String addSubItem(String informationUniqueId){
+		String dailyUniqueId = getUUID();
 		ContentValues values = new ContentValues();
-		values.put(UNIQUE_ID, uniqueID);
-		values.put(COUNT_NUMBER, 0);
+		values.put(DAILY_UNIQUE_ID, dailyUniqueId);
+		values.put(COUNT_NUMBER, 1);
 		values.put(COUNT_DATE, getDateFormat());
-		values.put(FK_UNIQUE_ID, fkUniqueId);
+		values.put(INFORMATION_UNIQUE_ID, informationUniqueId);
 
 		long id = 0;
 		id = db.insert(T_DAILY_COUNT, null, values);
 
-		return uniqueID;
+		return dailyUniqueId;
 	}
 
 	private String getUUID() {
@@ -103,81 +127,25 @@ public class DBProvider implements ConstantsImpl {
 		return uuid.toString();
 	}
 	
-	public int deleteItem(Map map){
+	public int unUseItem(Map map){
 		ContentValues values = new ContentValues();
 		values.put(DELETE_YN, "Y");
 
-		String whereClause = UNIQUE_ID + " = ? " ;
-		int cnt = db.update(T_COUNTER_INFOR, values, whereClause, new String[]{(String) map.get("fk_unique_id")});
-//		db.delete(T_COUNTER_INFOR, "_id = ?", new String[]{id});
-		
+		String whereClause = INFORMATION_UNIQUE_ID + " = ? " ;
+		int cnt = db.update(T_COUNTER_INFORMATION, values, whereClause, new String[]{(String) map.get(INFORMATION_UNIQUE_ID)});
+
 		return cnt;
 	}
 	
-	public int modifyItem(Map map){
-		ContentValues values = new ContentValues();
-		values.put(COUNTER_NAME, (String) map.get("title"));
-		
-		String whereClause = UNIQUE_ID + " = ? " ;
-		int cnt = db.update(T_COUNTER_INFOR, values, whereClause, new String[]{(String) map.get("title")});
-		
-		return cnt;
-	}
-
-	public int increaseCount(String fkUniqueId, int countNumber){
+	public int increaseCount(String dailyUniqueId, int countNumber){
 
 		ContentValues values = new ContentValues();
 		values.put(COUNT_NUMBER, countNumber);
 
-		String whereClause = UNIQUE_ID + " = ? " ;
-		int cnt = db.update(T_DAILY_COUNT, values, whereClause, new String[]{fkUniqueId});
+		String whereClause = DAILY_UNIQUE_ID + " = ? " ;
+		int cnt = db.update(T_DAILY_COUNT, values, whereClause, new String[]{dailyUniqueId});
 
 		return cnt;
-	}
-
-	public String getDateFormat(int year, int monthOfYear, int dayOfMonth) {
-		String sDate = "";
-        Calendar cal = Calendar.getInstance();
-		DateFormat formatter ;
-		formatter = new SimpleDateFormat(dateFormat);
-        cal.set(Calendar.YEAR, year);
-        cal.set(Calendar.MONTH, monthOfYear);
-        cal.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-        Date date = cal.getTime();
-
-        sDate = formatter.format(date); 
-		return sDate ;
-	}
-
-	public String getDateFormat(int gainDay) {
-		String sDate = "";
-		DateFormat formatter = new SimpleDateFormat(dateFormat);
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_MONTH, gainDay);
-        Date date = cal.getTime();
-
-        sDate = formatter.format(date); 
-        
-        return sDate ;
-	}
-
-	public String getDateFormat(int gainDay, String currentDate) {
-		String sDate = "";
-		DateFormat formatter = new SimpleDateFormat(dateFormat);
-        Calendar cal = Calendar.getInstance();
-        Date cDate = null;
-		try {
-			cDate = formatter.parse(currentDate);
-	        cal.setTime(cDate);
-	        cal.add(Calendar.DAY_OF_MONTH, gainDay);
-	        Date date = cal.getTime();
-
-	        sDate = formatter.format(date); 
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-
-        return sDate ;
 	}
 
 	public String getDateFormat(String dateForm) {
@@ -187,8 +155,17 @@ public class DBProvider implements ConstantsImpl {
 	}
 
 	public String getDateFormat() {
-		DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmsss");
-		Date date = new Date();
-		return dateFormat.format(date);
+		return getDateFormat("yyyyMMddHHmmsss");
 	}
-}
+
+	public String getDateFormat(int gainDay) {
+		String sDate = "";
+		DateFormat formatter = new SimpleDateFormat(dateFormat);
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DAY_OF_MONTH, gainDay);
+		Date date = cal.getTime();
+
+		sDate = formatter.format(date);
+
+		return sDate ;
+	}}

@@ -1,6 +1,5 @@
 package com.yojulab.yojucounter.database;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -22,7 +21,7 @@ public class OpenHelper extends SQLiteOpenHelper implements ConstantsImpl{
     }
 
     public void onDrop(SQLiteDatabase db){
-        db.execSQL(DROP_T + T_COUNTER_INFOR + ";");
+        db.execSQL(DROP_T + T_COUNTER_INFORMATION + ";");
         db.execSQL(DROP_T + T_DAILY_COUNT + ";");
     }
 

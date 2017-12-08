@@ -16,12 +16,13 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.facebook.stetho.Stetho;
+import com.yojulab.yojucounter.database.ConstantsImpl;
 import com.yojulab.yojucounter.database.DBProvider;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ConstantsImpl {
 
     RecyclerAdapter adapter;
 //    ExtendRecyclerAdapter adapter;
@@ -94,10 +95,10 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_add:
                 openDialog();
                 break;
-            case R.id.action_modify:
-                break;
-            case R.id.action_settings:
-                break;
+//            case R.id.action_modify:
+//                break;
+//            case R.id.action_settings:
+//                break;
             case R.id.action_statistic:
                 cls = StatisticActivity.class;
                 intent = new Intent(this, cls);
@@ -131,8 +132,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 EditText title = (EditText)dialog.findViewById(R.id.title);
                 HashMap<String,Object> hashMap = new HashMap<String,Object>();
-                hashMap.put("title", title.getText().toString());
-                hashMap.put("count_number", "0");
+                hashMap.put(COUNTER_NAME, title.getText().toString());
+                hashMap.put(COUNT_NUMBER, "0");
                 adapter.addItem(0,hashMap);
                 dialog.dismiss();
             }
