@@ -85,9 +85,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                 ((TextView) holder.countNumber).setText(count.toString());
                 String dailyUniqueId = holder.dailyUniqueId.getText().toString();
                 if(dailyUniqueId.equals("")){
-                    String informationUniqueId = null;
-                    String counterName = holder.counterName.getText().toString();
-                    informationUniqueId = db.addItem(counterName);
+                    String informationUniqueId = holder.informationUniqueId.getText().toString();
+                    if(informationUniqueId.equals("")) {
+                        String counterName = holder.counterName.getText().toString();
+                        informationUniqueId = db.addItem(counterName);
+                    }
                     dailyUniqueId = db.addSubItem(informationUniqueId);
                     ((TextView) holder.dailyUniqueId).setText(dailyUniqueId);
                     ((TextView) holder.informationUniqueId).setText(informationUniqueId);

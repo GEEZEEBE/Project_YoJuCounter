@@ -7,6 +7,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -166,6 +167,38 @@ public class DBProvider implements ConstantsImpl {
 		Date date = cal.getTime();
 
 		sDate = formatter.format(date);
+
+		return sDate ;
+	}
+	public String getDateFormat(int year, int monthOfYear,int dayOfMonth) {
+		String sDate = "";
+		Calendar cal = Calendar.getInstance();
+		DateFormat formatter ;
+		formatter = new SimpleDateFormat(dateFormat);
+		cal.set(Calendar.YEAR, year);
+		cal.set(Calendar.MONTH, monthOfYear);
+		cal.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+		Date date = cal.getTime();
+
+		sDate = formatter.format(date);
+		return sDate ;
+	}
+
+	public String getDateFormat(int gainDay, String currentDate) {
+		String sDate = "";
+		DateFormat formatter = new SimpleDateFormat(dateFormat);
+		Calendar cal = Calendar.getInstance();
+		Date cDate = null;
+		try {
+			cDate = formatter.parse(currentDate);
+			cal.setTime(cDate);
+			cal.add(Calendar.DAY_OF_MONTH, gainDay);
+			Date date = cal.getTime();
+
+			sDate = formatter.format(date);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
 
 		return sDate ;
 	}}
