@@ -111,11 +111,11 @@ public class StatisticActivity extends AppCompatActivity {
         l.setTextSize(11f);
         l.setXEntrySpace(4f);
 
-        MarkerView mv = new CustomMarkerView(this,R.layout.content_marker_view);
-        mv.setChartView(mChart); // For bounds control
-        mChart.setMarker(mv); // Set the marker to the chart
+//        MarkerView mv = new CustomMarkerView(this,R.layout.content_marker_view);
+//        mv.setChartView(mChart); // For bounds control
+//        mChart.setMarker(mv); // Set the marker to the chart
     }
-    
+
     View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
