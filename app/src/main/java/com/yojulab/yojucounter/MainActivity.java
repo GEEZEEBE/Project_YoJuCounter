@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -45,7 +46,8 @@ public class MainActivity extends AppCompatActivity implements ConstantsImpl {
 
         recyclerView.setHasFixedSize(true);
 
-        RecyclerView.LayoutManager layoutManager = layoutManager = new LinearLayoutManager(this);
+//        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 2);
 
         recyclerView.setLayoutManager(layoutManager);
 
