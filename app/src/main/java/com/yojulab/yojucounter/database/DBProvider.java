@@ -149,6 +149,18 @@ public class DBProvider implements ConstantsImpl {
 		return cnt;
 	}
 
+	public long insertCountLog(String informationUniqueId){
+		String uniqueID = getUUID();
+		ContentValues values = new ContentValues();
+		values.put(INFORMATION_UNIQUE_ID, informationUniqueId);
+		values.put(COUNT_DATE, getDateFormat());
+
+		long id = 0;
+		id = db.insert(T_COUNT_LOG, null, values);
+
+		return id;
+	}
+
 	public String getDateFormat(String dateForm) {
 		DateFormat dateFormat = new SimpleDateFormat(dateForm);
 		Date date = new Date();

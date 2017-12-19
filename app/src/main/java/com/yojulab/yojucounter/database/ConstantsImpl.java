@@ -8,7 +8,7 @@ public interface ConstantsImpl {
     final String dateFormat = "yyyyMMdd";
 
     final String DB = "yojucounter.db";
-    final int VERSION = 6;
+    final int VERSION = 7;
 
     final String T_COUNTER_INFORMATION = "counter_information";
     final String INFORMATION_UNIQUE_ID = "information_unique_id";
@@ -32,6 +32,14 @@ public interface ConstantsImpl {
             ", " + COUNT_DATE + " text not null " +
             ", " + INFORMATION_UNIQUE_ID + " text not null " +
             ", PRIMARY KEY ("+DAILY_UNIQUE_ID+")"+
+            ", FOREIGN KEY ("+INFORMATION_UNIQUE_ID+")"+
+            " REFERENCES "+ T_COUNTER_INFORMATION +" ("+ INFORMATION_UNIQUE_ID +")"+
+            " ); ";
+
+    final String T_COUNT_LOG = "count_log";
+    final String CREATE_T_COUNT_LOG = "create table " + T_COUNT_LOG +
+            " ( " + COUNT_DATE + " text not null " +
+            ", " + INFORMATION_UNIQUE_ID + " text not null " +
             ", FOREIGN KEY ("+INFORMATION_UNIQUE_ID+")"+
             " REFERENCES "+ T_COUNTER_INFORMATION +" ("+ INFORMATION_UNIQUE_ID +")"+
             " ); ";
