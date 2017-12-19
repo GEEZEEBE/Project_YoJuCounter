@@ -16,20 +16,21 @@ public class OpenHelper extends SQLiteOpenHelper implements ConstantsImpl{
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-//        db.execSQL(CREATE_T_COUNTER_INFOR);
-//        db.execSQL(CREATE_T_DAILY_COUNT);
+        db.execSQL(CREATE_T_COUNTER_INFOR);
+        db.execSQL(CREATE_T_DAILY_COUNT);
+        db.execSQL(CREATE_T_COUNT_LOG);
     }
 
     public void onDrop(SQLiteDatabase db){
-//        db.execSQL(DROP_T + T_COUNTER_INFORMATION + ";");
-//        db.execSQL(DROP_T + T_DAILY_COUNT + ";");
+        db.execSQL(DROP_T + T_COUNTER_INFORMATION + " ;");
+        db.execSQL(DROP_T + T_DAILY_COUNT + " ;");
+        db.execSQL(DROP_T + T_COUNT_LOG + " ;");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         Log.w("debug", "Version mismatch : "+oldVersion + "to "+newVersion);
 //        onDrop(db);
-//        onCreate(db);
-        db.execSQL(CREATE_T_COUNT_LOG);
+        onCreate(db);
     }
 }

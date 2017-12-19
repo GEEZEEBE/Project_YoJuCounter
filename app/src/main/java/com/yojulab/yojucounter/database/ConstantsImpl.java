@@ -8,7 +8,7 @@ public interface ConstantsImpl {
     final String dateFormat = "yyyyMMdd";
 
     final String DB = "yojucounter.db";
-    final int VERSION = 7;
+    final int VERSION = 8;
 
     final String T_COUNTER_INFORMATION = "counter_information";
     final String INFORMATION_UNIQUE_ID = "information_unique_id";
